@@ -19,7 +19,16 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('auth/', include('djoser.urls')),  # for registration, reset, etc.
-    path('auth/', include('djoser.urls.jwt')),  # for token auth
-    path('', include('listings.urls')),  # Include URLs from listings app
+    
+    # Authentication endpoints
+    path('api/auth/', include('djoser.urls')),  # for registration, reset, etc.
+    path('api/auth/', include('djoser.urls.jwt')),  # for token auth
+    
+    # App endpoints
+    path('api/listings/', include('listings.urls')),  # Listings management
+    path('api/kyc/', include('kyc.urls')),  # KYC verification
+    path('api/transactions/', include('transactions.urls')),  # Transaction management
+    path('api/reviews/', include('reviews.urls')),  # Review system
+    path('api/disputes/', include('disputes.urls')),  # Dispute management
+    path('api/donations/', include('donations.urls')),  # Donation requests
 ]

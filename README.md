@@ -1,54 +1,690 @@
-# RentoShare Backend
+# RentoShare Backend API
 
-A Django-based backend application for RentoShare - a platform for sharing and renting items within communities.
+A Django REST Framework based backend application for RentoShare - a platform for sharing and renting items within communities.
 
 ## 📋 Table of Contents
 
 - [Prerequisites](#prerequisites)
 - [Quick Start](#quick-start)
-- [Detailed Setup Guide](#detailed-setup-guide)
-- [Shell-Specific Setup](#shell-specific-setup)
-- [Troubleshooting](#troubleshooting)
-- [Development](#development)
-- [Contributing](#contributing)
+- [API Documentation](#api-documentation)
+- [Authentication](#authentication)
+- [Endpoints](#endpoints)
+- [Setup Guide](#setup-guide)
 
 ## 🚀 Prerequisites
 
-Before you begin, you'll need to have the following installed on your system:
-
-### Required Software
+Before you begin, you'll need:
 
 1. **Git** - Version control system
 2. **Python 3.8+** - Programming language
-3. **Package Manager** - Depends on your operating system
+3. **pipenv** - Python dependency management
 
-### Check What You Have
+## 🏁 Quick Start
 
-Not sure what's installed? Run these commands in your terminal/command prompt:
-
-#### Check Git Installation
+1. Clone the repository:
 
 ```bash
-git --version
+git clone <repository-url>
+cd rentoshare_backend
 ```
 
-If you see a version number, Git is installed. If not, [install Git](https://git-scm.com/downloads).
-
-#### Check Python Installation
+2. Install dependencies:
 
 ```bash
-python --version
-# or
-python3 --version
+pipenv install
 ```
 
-If you see a version number (3.8 or higher), Python is ready. If not, [install Python](https://python.org/downloads).
-
-#### Find Your Shell (For Unix-like systems)
+3. Activate virtual environment:
 
 ```bash
-echo $SHELL
+pipenv shell
 ```
+
+4. Run migrations:
+
+```bash
+python manage.py migrate
+```
+
+5. Start the development server:
+
+```bash
+python manage.py runserver
+```
+
+The API will be available at `http://127.0.0.1:8000/`
+
+## 🔐 Authentication
+
+This API uses JWT (JSON Web Token) authentication. Most endpoints require authentication.
+
+### Authentication Headers
+
+```
+Authorization: Bearer <your-jwt-token>
+```
+
+### Getting Tokens
+
+- **Login**: `POST /api/auth/jwt/create/`
+- **Refresh Token**: `POST /api/auth/jwt/refresh/`
+
+## 📚 API Documentation
+
+All API endpoints are prefixed with `/api/`. The API follows RESTful conventions and returns JSON responses.
+
+### Base URL: `http://127.0.0.1:8000/api/`
+
+---
+
+## 🔐 Authentication Endpoints
+
+### User Registration
+
+- **Endpoint**: `POST /api/auth/users/`
+- **Auth Required**: No
+- **Description**: Register a new user account
+
+**Request Body:**
+
+```json
+{
+	"email": "user@example.com",
+	"password": "securepassword123",
+	"full_name": "John Doe",
+	"phone": "+1234567890",
+	"role": "vendor" // or "consumer"
+}
+```
+
+**Response:**
+
+```json
+{
+	"id": 1,
+	"email": "user@example.com",
+	"full_name": "John Doe"
+}
+```
+
+### User Login
+
+- **Endpoint**: `POST /api/auth/jwt/create/`
+- **Auth Required**: No
+- **Description**: Login and get JWT tokens
+
+**Request Body:**
+
+```json
+{
+	"email": "user@example.com",
+	"password": "securepassword123"
+}
+```
+
+**Response:**
+
+```json
+{
+	"access": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+	"refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+### Refresh Token
+
+- **Endpoint**: `POST /api/auth/jwt/refresh/`
+- **Auth Required**: No
+- **Description**: Refresh access token
+
+**Request Body:**
+
+```json
+{
+	"refresh": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+}
+```
+
+---
+
+## 🏠 Listings Endpoints
+
+### Get All Listings
+
+- **Endpoint**: `GET /api/listings/`
+- **Auth Required**: No
+- **Description**: Get all active listings
+- **Query Parameters**:
+    - `listing_type`: Filter by type (product, service, donation)
+    - `search`: Search in title and description
+
+**Response:**
+
+```json
+[
+	{
+		"id": 1,
+		"title": "Electric Drill",
+		"description": "Powerful electric drill for rent",
+		"listing_type": "product",
+		"price_per_day": 15.0,
+		"location": "Downtown",
+		"is_active": true,
+		"user": {
+			"id": 1,
+			"email": "vendor@example.com",
+			"full_name": "John Vendor"
+		}
+	}
+]
+```
+
+### Create Listing
+
+- **Endpoint**: `POST /api/listings/`
+- **Auth Required**: Yes
+- **Description**: Create a new listing
+
+**Request Body:**
+
+```json
+{
+	"title": "Electric Drill",
+	"description": "Powerful electric drill for rent",
+	"listing_type": "product",
+	"price_per_day": 15.0,
+	"location": "Downtown",
+	"available_from": "2025-08-15T09:00:00Z",
+	"available_to": "2025-12-31T18:00:00Z"
+}
+```
+
+### Get Single Listing
+
+- **Endpoint**: `GET /api/listings/{id}/`
+- **Auth Required**: No
+- **Description**: Get detailed listing information
+
+### Update Listing
+
+- **Endpoint**: `PUT /api/listings/{id}/`
+- **Auth Required**: Yes (Owner only)
+- **Description**: Update listing details
+
+### Delete Listing
+
+- **Endpoint**: `DELETE /api/listings/{id}/`
+- **Auth Required**: Yes (Owner only)
+- **Description**: Delete a listing
+
+---
+
+## 🔍 KYC (Know Your Customer) Endpoints
+
+### Submit KYC
+
+- **Endpoint**: `POST /api/kyc/create/`
+- **Auth Required**: Yes
+- **Description**: Submit KYC documents for verification
+
+**Request Body:**
+
+```json
+{
+	"gov_id_number": "ID123456789",
+	"document_type": "national_id",
+	"document_front_picture": "https://example.com/front.jpg",
+	"document_back_picture": "https://example.com/back.jpg",
+	"permanent_address": "123 Main St, City",
+	"temp_address": "456 Temp St, City",
+	"date_of_birth": "1990-01-01",
+	"nationality": "Country",
+	"occupation": "Software Developer",
+	"annual_income": 50000.0,
+	"emergency_contact_name": "Jane Doe",
+	"emergency_contact_phone": "+1234567890",
+	"emergency_contact_relation": "Sister"
+}
+```
+
+### Get My KYC Status
+
+- **Endpoint**: `GET /api/kyc/`
+- **Auth Required**: Yes
+- **Description**: Get current user's KYC status
+
+**Response:**
+
+```json
+{
+	"id": 1,
+	"kyc_status": "pending",
+	"is_verified": false,
+	"submitted_at": "2025-08-12T10:00:00Z",
+	"document_type": "national_id"
+}
+```
+
+### Check User KYC Status (Public)
+
+- **Endpoint**: `GET /api/kyc/public/{user_id}/`
+- **Auth Required**: No
+- **Description**: Check if a user is KYC verified (public info only)
+
+**Response:**
+
+```json
+{
+	"user_email": "user@example.com",
+	"is_verified": true,
+	"kyc_status": "approved",
+	"verified_at": "2025-08-12T15:30:00Z"
+}
+```
+
+### Admin: List All KYCs
+
+- **Endpoint**: `GET /api/kyc/admin/list/`
+- **Auth Required**: Yes (Admin only)
+- **Query Parameters**: `status` (pending, approved, rejected, under_review)
+
+### Admin: Update KYC Status
+
+- **Endpoint**: `PUT /api/kyc/admin/{kyc_id}/status/`
+- **Auth Required**: Yes (Admin only)
+
+**Request Body:**
+
+```json
+{
+	"kyc_status": "approved", // or "rejected"
+	"rejection_reason": "Invalid document" // required if rejected
+}
+```
+
+---
+
+## 💰 Transaction Endpoints
+
+### Create Transaction
+
+- **Endpoint**: `POST /api/transactions/create/`
+- **Auth Required**: Yes
+- **Description**: Create a rental transaction
+
+**Request Body:**
+
+```json
+{
+	"listing": 1,
+	"start_date": "2025-08-15T09:00:00Z",
+	"end_date": "2025-08-20T18:00:00Z"
+}
+```
+
+### Get My Transactions
+
+- **Endpoint**: `GET /api/transactions/`
+- **Auth Required**: Yes
+- **Description**: Get all transactions (as vendor or consumer)
+
+**Response:**
+
+```json
+[
+	{
+		"id": 1,
+		"listing_title": "Electric Drill",
+		"vendor_email": "vendor@example.com",
+		"consumer_email": "consumer@example.com",
+		"start_date": "2025-08-15T09:00:00Z",
+		"end_date": "2025-08-20T18:00:00Z",
+		"total_price": 75.0,
+		"status": "active",
+		"duration_days": 5
+	}
+]
+```
+
+### Get Transaction Details
+
+- **Endpoint**: `GET /api/transactions/{id}/`
+- **Auth Required**: Yes (Participants only)
+
+### Update Transaction Status
+
+- **Endpoint**: `PUT /api/transactions/{id}/status/`
+- **Auth Required**: Yes (Vendor only)
+
+**Request Body:**
+
+```json
+{
+	"status": "completed" // pending, active, completed, cancelled, disputed
+}
+```
+
+### Get Transaction Statistics
+
+- **Endpoint**: `GET /api/transactions/stats/`
+- **Auth Required**: Yes
+- **Description**: Get user's transaction statistics
+
+**Response:**
+
+```json
+{
+	"vendor_stats": {
+		"total": 15,
+		"active": 3,
+		"completed": 10,
+		"total_earnings": 1250.0
+	},
+	"consumer_stats": {
+		"total": 8,
+		"active": 2,
+		"completed": 6,
+		"total_spent": 450.0
+	}
+}
+```
+
+---
+
+## ⭐ Review Endpoints
+
+### Create Review
+
+- **Endpoint**: `POST /api/reviews/create/`
+- **Auth Required**: Yes
+- **Description**: Create a review for another user
+
+**Request Body:**
+
+```json
+{
+	"reviewed": 2,
+	"rating": 4.5,
+	"comment": "Great experience! Very reliable and friendly."
+}
+```
+
+### Get My Given Reviews
+
+- **Endpoint**: `GET /api/reviews/`
+- **Auth Required**: Yes
+- **Description**: Get reviews I have given to others
+
+### Get My Received Reviews
+
+- **Endpoint**: `GET /api/reviews/received/`
+- **Auth Required**: Yes
+- **Description**: Get reviews I have received from others
+
+### Get User's Reviews (Public)
+
+- **Endpoint**: `GET /api/reviews/user/{user_id}/`
+- **Auth Required**: No
+- **Description**: Get all reviews for a specific user
+
+**Response:**
+
+```json
+[
+	{
+		"id": 1,
+		"reviewer_name": "John Smith",
+		"rating": 4.5,
+		"comment": "Great experience!",
+		"created_at": "2025-08-12T10:00:00Z"
+	}
+]
+```
+
+### Get User Rating Statistics
+
+- **Endpoint**: `GET /api/reviews/user/{user_id}/stats/`
+- **Auth Required**: No
+- **Description**: Get rating statistics for a user
+
+**Response:**
+
+```json
+{
+	"average_rating": 4.2,
+	"total_reviews": 25,
+	"rating_distribution": {
+		"1": 1,
+		"2": 2,
+		"3": 5,
+		"4": 8,
+		"5": 9
+	}
+}
+```
+
+### Get My Rating Statistics
+
+- **Endpoint**: `GET /api/reviews/stats/`
+- **Auth Required**: Yes
+
+---
+
+## 🚨 Dispute Endpoints
+
+### Create Dispute
+
+- **Endpoint**: `POST /api/disputes/create/`
+- **Auth Required**: Yes
+- **Description**: Raise a dispute for a transaction
+
+**Request Body:**
+
+```json
+{
+	"transaction": 1,
+	"reason": "Item was not as described and had damages"
+}
+```
+
+### Get My Disputes
+
+- **Endpoint**: `GET /api/disputes/`
+- **Auth Required**: Yes
+- **Description**: Get all disputes I'm involved in
+
+**Response:**
+
+```json
+[
+	{
+		"id": 1,
+		"transaction_id": 5,
+		"raised_by_email": "consumer@example.com",
+		"reason": "Item was damaged",
+		"status": "open",
+		"created_at": "2025-08-12T10:00:00Z"
+	}
+]
+```
+
+### Get Dispute Details
+
+- **Endpoint**: `GET /api/disputes/{id}/`
+- **Auth Required**: Yes (Participants only)
+
+### Get Dispute Statistics
+
+- **Endpoint**: `GET /api/disputes/stats/`
+- **Auth Required**: Yes
+
+**Response:**
+
+```json
+{
+	"raised_by_me": {
+		"total": 3,
+		"open": 1,
+		"resolved": 2,
+		"rejected": 0
+	},
+	"involving_me": {
+		"total": 5,
+		"open": 2,
+		"resolved": 3,
+		"rejected": 0
+	}
+}
+```
+
+### Admin: List All Disputes
+
+- **Endpoint**: `GET /api/disputes/admin/list/`
+- **Auth Required**: Yes (Admin only)
+- **Query Parameters**: `status` (open, resolved, rejected)
+
+### Admin: Resolve Dispute
+
+- **Endpoint**: `PUT /api/disputes/admin/{id}/resolve/`
+- **Auth Required**: Yes (Admin only)
+
+**Request Body:**
+
+```json
+{
+	"status": "resolved",
+	"resolution_notes": "Refund has been processed to the consumer"
+}
+```
+
+---
+
+## 🎁 Donation Request Endpoints
+
+### Create Donation Request
+
+- **Endpoint**: `POST /api/donations/create/`
+- **Auth Required**: Yes
+- **Description**: Request a donation item
+
+**Request Body:**
+
+```json
+{
+	"listing": 1,
+	"message": "I really need this for my studies. Would be very grateful!"
+}
+```
+
+### Get My Donation Requests
+
+- **Endpoint**: `GET /api/donations/`
+- **Auth Required**: Yes
+- **Description**: Get donation requests I have made
+
+### Get Received Donation Requests
+
+- **Endpoint**: `GET /api/donations/received/`
+- **Auth Required**: Yes
+- **Description**: Get donation requests for my listings
+
+**Response:**
+
+```json
+[
+	{
+		"id": 1,
+		"listing_title": "Old Textbooks",
+		"user_email": "student@example.com",
+		"user_name": "Jane Student",
+		"message": "Need for studies",
+		"status": "pending",
+		"created_at": "2025-08-12T10:00:00Z"
+	}
+]
+```
+
+### Update Donation Request Status
+
+- **Endpoint**: `PUT /api/donations/{id}/status/`
+- **Auth Required**: Yes (Listing owner only)
+
+**Request Body:**
+
+```json
+{
+	"status": "accepted" // or "rejected"
+}
+```
+
+### Get Donation Statistics
+
+- **Endpoint**: `GET /api/donations/stats/`
+- **Auth Required**: Yes
+
+**Response:**
+
+```json
+{
+	"requests_made": {
+		"total": 5,
+		"pending": 2,
+		"accepted": 2,
+		"rejected": 1
+	},
+	"requests_received": {
+		"total": 8,
+		"pending": 3,
+		"accepted": 4,
+		"rejected": 1
+	}
+}
+```
+
+### Get Listing Donation Requests (Public)
+
+- **Endpoint**: `GET /api/donations/listing/{listing_id}/`
+- **Auth Required**: No
+- **Description**: Get accepted donation requests for a listing
+
+---
+
+## 📊 Response Format
+
+### Success Response
+
+```json
+{
+    "status": "success",
+    "data": { ... }
+}
+```
+
+### Error Response
+
+```json
+{
+	"status": "error",
+	"message": "Error description",
+	"errors": {
+		"field_name": ["Error message"]
+	}
+}
+```
+
+### HTTP Status Codes
+
+- `200` - Success
+- `201` - Created
+- `400` - Bad Request
+- `401` - Unauthorized
+- `403` - Forbidden
+- `404` - Not Found
+- `500` - Internal Server Error
+
+---
+
+## 🔧 Development Setup
 
 Common outputs:
 
@@ -433,17 +1069,228 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Beginner Resources
 
 - **Git Tutorial:** [Git Handbook](https://guides.github.com/introduction/git-handbook/)
-- **Python Tutorial:** [Python.org Tutorial](https://docs.python.org/3/tutorial/)
-- **Django Tutorial:** [Django Documentation](https://docs.djangoproject.com/en/stable/intro/tutorial01/)
 
-### Contact
+## 🔧 Development Setup
 
-- **Email:** your.email@example.com
-- **GitHub Issues:** [Create an Issue](https://github.com/yourusername/rentoshare_backend/issues/new)
-- **Discord:** [Join our server](https://discord.gg/yourserver)
+### Prerequisites
+
+1. **Git** - Version control system
+2. **Python 3.8+** - Programming language
+3. **pipenv** - Python dependency management
+
+### Installation Steps
+
+1. **Clone the repository:**
+
+```bash
+git clone <repository-url>
+cd rentoshare_backend
+```
+
+2. **Install pipenv (if not already installed):**
+
+```bash
+pip install pipenv
+```
+
+3. **Install dependencies:**
+
+```bash
+pipenv install
+```
+
+4. **Activate virtual environment:**
+
+```bash
+pipenv shell
+```
+
+5. **Run database migrations:**
+
+```bash
+python manage.py makemigrations
+python manage.py migrate
+```
+
+6. **Create a superuser (optional):**
+
+```bash
+python manage.py createsuperuser
+```
+
+7. **Run the development server:**
+
+```bash
+python manage.py runserver
+```
+
+### Environment Variables
+
+Create a `.env` file in the project root:
+
+```env
+DEBUG=True
+SECRET_KEY=your-secret-key-here
+DATABASE_URL=postgresql://user:password@localhost:5432/rentoshare_db
+ALLOWED_HOSTS=localhost,127.0.0.1
+```
+
+### Database Configuration
+
+For production, update `settings.py` to use PostgreSQL:
+
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'rentoshare_db',
+        'USER': 'your_username',
+        'PASSWORD': 'your_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+```
 
 ---
 
-**Happy coding! 🎉**
+## 🧪 Testing
 
-_If this Project or Guide helped you, please give us a ⭐ on GitHub!_
+Run tests with:
+
+```bash
+python manage.py test
+```
+
+Run specific app tests:
+
+```bash
+python manage.py test kyc
+python manage.py test transactions
+python manage.py test reviews
+python manage.py test disputes
+python manage.py test donations
+```
+
+---
+
+## 📝 Important Notes
+
+### Authentication Requirements
+
+**Endpoints requiring authentication:**
+
+- All `POST`, `PUT`, `DELETE` operations (except registration/login)
+- User-specific data retrieval
+- Personal statistics and dashboards
+
+**Public endpoints (no auth required):**
+
+- User registration and login
+- Viewing listings
+- Public user profiles and reviews
+- KYC verification status (limited info)
+
+### Admin-Only Endpoints
+
+These require admin privileges:
+
+- `/api/kyc/admin/` - KYC management
+- `/api/disputes/admin/` - Dispute resolution
+- `/api/transactions/admin/` - Transaction oversight
+
+### Rate Limiting
+
+API endpoints are rate-limited:
+
+- **Authentication endpoints**: 5 requests per minute
+- **General endpoints**: 100 requests per minute
+- **Admin endpoints**: 200 requests per minute
+
+### File Upload
+
+For file uploads (KYC documents, listing images), use multipart/form-data:
+
+```javascript
+const formData = new FormData();
+formData.append("document_front_picture", file);
+
+fetch("/api/kyc/create/", {
+	method: "POST",
+	headers: {
+		Authorization: "Bearer " + token,
+	},
+	body: formData,
+});
+```
+
+---
+
+## 🚀 Deployment
+
+### Production Checklist
+
+1. Set `DEBUG = False` in settings
+2. Configure proper database (PostgreSQL recommended)
+3. Set up static file serving
+4. Configure CORS for frontend
+5. Set up HTTPS
+6. Configure email backend for notifications
+7. Set up monitoring and logging
+
+### Docker Deployment
+
+```dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+COPY Pipfile Pipfile.lock ./
+RUN pip install pipenv && pipenv install --system --deploy
+
+COPY . .
+RUN python manage.py collectstatic --noinput
+
+EXPOSE 8000
+CMD ["gunicorn", "rentoshare.wsgi:application", "--bind", "0.0.0.0:8000"]
+```
+
+---
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 📞 Support
+
+For support and questions:
+
+- Create an issue on GitHub
+- Contact the development team
+- Check the documentation
+
+---
+
+## 🔄 API Versioning
+
+Current API version: `v1`
+
+Future versions will be accessible via:
+
+- `/api/v2/` for version 2
+- `/api/v3/` for version 3
+
+---
+
+**Happy coding! 🚀**
