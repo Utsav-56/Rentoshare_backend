@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('auth/', include('djoser.urls')),  # for registration, reset, etc.
     path('auth/', include('djoser.urls.jwt')),  # for token auth
+    path('', include('listings.urls')),  # Include URLs from listings app
 ]

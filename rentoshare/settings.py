@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'djoser',
     'accounts',
+    'listings',  # Include listings app
 
 ]
 
