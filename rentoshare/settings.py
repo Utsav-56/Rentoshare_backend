@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from .restframeworkSettings import djoser_settings, rest_framework_settings
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -42,36 +44,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'djoser',
+    'accounts',
 
 ]
 
 
+DJOSER = djoser_settings.CUSTOM_DJOSER_SETTINGS
 
-
-
-# Django REST Framework settings
-
-# Set append slash to False to avoid double slashes in URLs
-APPEND_SLASH = True
-
-
-# https://www.django-rest-framework.org/api-guide/settings/
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    
-    ),
-     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',  # Default: require auth
-    ]
-}
-
-# Optional: JWT settings
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
-}
-
+REST_FRAMEWORK = rest_framework_settings.CUSTOM_REST_FRAMEWORK_SETTINGS
+SIMPLE_JWT = rest_framework_settings.CUSTOM_SIMPLE_JWT_SETTINGS
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -153,4 +134,8 @@ STATIC_URL = 'static/'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Custom User Model
+AUTH_USER_MODEL = 'accounts.User'
