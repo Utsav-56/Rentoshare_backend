@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>RentoShare API Preview</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				background: #f7f7f7;
+				margin: 0;
+				padding: 0;
+			}
+			.container {
+				max-width: 800px;
+				margin: 40px auto;
+				background: #fff;
+				border-radius: 8px;
+				box-shadow: 0 2px 8px #0001;
+				padding: 32px;
+			}
+			h1 {
+				text-align: center;
+			}
+			.endpoint {
+				margin-bottom: 24px;
+			}
+			.endpoint label {
+				font-weight: bold;
+			}
+			.endpoint input,
+			.endpoint select {
+				margin: 0 8px 0 0;
+				padding: 4px;
+			}
+			.endpoint button {
+				padding: 6px 16px;
+				border: none;
+				background: #007bff;
+				color: #fff;
+				border-radius: 4px;
+				cursor: pointer;
+			}
+			.endpoint button:hover {
+				background: #0056b3;
+			}
+			pre {
+				background: #222;
+				color: #b9f1c0;
+				padding: 16px;
+				border-radius: 6px;
+				overflow-x: auto;
+			}
+			.response-title {
+				margin-top: 0;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h1>RentoShare API Preview</h1>
+			<div class="endpoint">
+				<label>Get Listings:</label>
+				<button onclick="testEndpoint('GET', '/api/listings/')">
+					Test
+				</button>
+			</div>
+			<div class="endpoint">
+				<label>Get My KYC:</label>
+				<input
+					type="text"
+					id="token_kyc"
+					placeholder="JWT Token"
+					size="30"
+				/>
+				<button
+					onclick="testEndpoint('GET', '/api/kyc/', document.getElementById('token_kyc').value)"
+				>
+					Test
+				</button>
+			</div>
+			<div class="endpoint">
+				<label>Get My Transactions:</label>
+				<input
+					type="text"
+					id="token_txn"
+					placeholder="JWT Token"
+					size="30"
+				/>
+				<button
+					onclick="testEndpoint('GET', '/api/transactions/', document.getElementById('token_txn').value)"
+				>
+					Test
+				</button>
+			</div>
+			<div class="endpoint">
+				<label>Get My Reviews:</label>
+				<input
+					type="text"
+					id="token_reviews"
+					placeholder="JWT Token"
+					size="30"
+				/>
+				<button
+					onclick="testEndpoint('GET', '/api/reviews/', document.getElementById('token_reviews').value)"
+				>
+					Test
+				</button>
+			</div>
+			<div class="endpoint">
+				<label>Get My Disputes:</label>
+				<input
+					type="text"
+					id="token_disputes"
+					placeholder="JWT Token"
+					size="30"
+				/>
+				<button
+					onclick="testEndpoint('GET', '/api/disputes/', document.getElementById('token_disputes').value)"
+				>
+					Test
+				</button>
+			</div>
+			<div class="endpoint">
+				<label>Get My Donation Requests:</label>
+				<input
+					type="text"
+					id="token_donations"
+					placeholder="JWT Token"
+					size="30"
+				/>
+				<button
+					onclick="testEndpoint('GET', '/api/donations/', document.getElementById('token_donations').value)"
+				>
+					Test
+				</button>
+			</div>
+			<h3 class="response-title">Response:</h3>
+			<pre id="response">Click a button to test an endpoint.</pre>
+		</div>
+		<script>
+			function testEndpoint(method, endpoint, token) {
+				const url = endpoint.startsWith("http")
+					? endpoint
+					: window.location.origin + endpoint;
+				const headers = { Accept: "application/json" };
+				if (token) headers["Authorization"] = "Bearer " + token;
+				fetch(url, { method, headers })
+					.then((r) =>
+						r.json().then((data) => ({ status: r.status, data }))
+					)
+					.then((res) => {
+						document.getElementById("response").textContent =
+							"Status: " +
+							res.status +
+							"\n" +
+							JSON.stringify(res.data, null, 2);
+					})
+					.catch((e) => {
+						document.getElementById("response").textContent =
+							"Error: " + e;
+					});
+			}
+		</script>
+	</body>
+</html>
